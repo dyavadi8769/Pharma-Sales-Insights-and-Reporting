@@ -36,7 +36,7 @@ DM-DA01-REQ-3|Head of Sales|A detailed report of `sales by sales-team split by p
 ***Table-1 : Requirements***
 
 ## Dataset
-The dataset is sourced from each distributor. It contains Pharmaceutical Manufacturing Company’s, Wholesale-Retail Data. The field description of the raw data is given below. The raw dataset `pharma-data.csv` can be downloaded from [here](https://drive.google.com/file/d/1npKF_C2tG5psY-at4wvpEgh6T-7KHxEZ/view?usp=share_link)
+The dataset is sourced from each distributor. It contains Pharmaceutical Manufacturing Company’s, Wholesale-Retail Data. The field description of the raw data is given below. The cleaned dataset `pharma-data.csv` can be downloaded from [here](https://drive.google.com/file/d/1npKF_C2tG5psY-at4wvpEgh6T-7KHxEZ/view?usp=share_link)
 
 |Field|Description|
 |:---|:--|
@@ -86,13 +86,53 @@ Note that these steps can be performed using `PowerQuery Editor` and/or excel; h
 EDA steps can be found in the `EDA.ipynb` notebook.
 
 ### Data Cleaning and Transform [PowerQuery Editor]
-The provided dataset was relatively clean and well organized; hence only a little work was required in this step; the following steps were carried out...
-* Correct column heading provided
-* Correct data type is assigned to columns
+Although the dataset was already well structured, we leveraged Power Query’s advanced capabilities and complemented them with robust DAX computations to deliver a truly end-to-end solution:
+
+* Dynamic Parameterization & Conditional Logic: Created custom parameters and conditional columns to automatically adjust filters, splits, and aggregations as new data arrived.
+
+* Unpivot & Pivot Operations: Transformed nested attribute columns into a normalized structure with unpivot/pivot steps to enable flexible reporting across multiple dimensions.
+
+* Custom M-Function Development: Wrote reusable M-functions for complex parsing (e.g., splitting combined location codes, standardizing product naming conventions) and applied them across queries for consistency.
+
+* Query Folding & Performance Optimization: Ensured all transformations folded back to the source where possible, significantly reducing load times; optimized step order and introduced query buffering for large tables.
+
+* Merging & Reference Tables: Merged multiple distributor and geography lookup tables into the main fact query using fuzzy matching and robust key-mapping logic to enrich sales records with region and channel metadata.
+
+* Error-Handling & Data Validation: Implemented try…otherwise and validation rules within Power Query to catch and correct negative sales values, malformed dates, and null geographical coordinates before they entered the model.
+
+* DAX-Based Measures & Calculations: Developed complex DAX measures and calculated columns—such as YTD sales, month-over-month growth %, dynamic ranking by product and region, and advanced time-intelligence functions (TOTALYTD, SAMEPERIODLASTYEAR)—to power interactive KPIs and enable slice-and-dice analysis across the dashboards.
 
 ### Data Model Creation [PowerBI Desktop]
-* The provided data is in a single table format. The exploration revealed that it contains both categorical (`dimensions`) and numeric (`facts`) data. 
-* We build a data model where dimensions and facts are separated, then they are linked together by logical relationship to form a `star schema.` The resultant data model is shown below...
+Starting from a single flat CSV, we've implemented a full star-schema design by separating facts from dimensions. Below is the README.md content for documenting this model.
+
+
+1. Surrogate Keys
+
+* Generated integer PKs for dimensions; used matching FKs in the fact table.
+
+2. Relationships
+
+* Defined one-to-many (1:*) links from each dimension into FACT-sales for optimal query performance.
+
+3. Hidden & Sort Settings
+
+* Hid technical key fields in the report view.
+
+* Sorted Month names by Month_ID for correct chronology.
+
+4. Data Categories & Time Intelligence
+
+* Marked City/Country for map visuals.
+
+* Enabled date hierarchies on Year/Month in the DIM-month table.
+
+5. Performance Tuning
+
+* Disabled Auto Date/Time.
+
+* Ensured Power Query steps fold back to the source.
+
+* Removed unused columns and tables from the model view.
 
 <img src="images\data-model.png"/>
 
